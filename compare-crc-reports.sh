@@ -1,0 +1,6 @@
+folder="tmp"
+before="/${folder}/crc_before.txt"; after="/${folder}/crc_after.txt"
+for d in /dev/sdd /dev/sde /dev/sdf; do smartctl -A $d | awk '$1==199{print FILENAME,$0}' FILENAME=$d; done | tee "$before"
+for d in /dev/sdd /dev/sde /dev/sdf; do (dd if=$d of=/dev/null bs=8M status=none &) ; done; sleep 600; pkill -f "dd if=/dev/sd[d-f]"
+for d in /dev/sdd /dev/sde /dev/sdf; do smartctl -A $d | awk '$1==199{print FILENAME,$0}' FILENAME=$d; done | tee "$after"
+echo "BEFORE:"; cat "$before"; echo "AFTER:"; cat "$after"
