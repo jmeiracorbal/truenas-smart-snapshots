@@ -1,0 +1,29 @@
+#!/bin/bash
+
+ts=$(date +%F_%H%M%S)
+folder=tmp
+out="/${folder}/disk_health_${ts}.txt"
+
+STATUS_OK="VALID"
+ADVICE_REPLACE="REPLACE DISK"
+ADVICE_REVIEW="CHECK INFRASTRUCTURE: sATA, BACKPLANE"
+
+for d in /dev/sd{a..g}; do
+  [ -b "$d" ] || continue
+  id="$(lsblk -dn -o MODEL,SERIAL,HCTL,TRAN $d 2>/dev/null)"
+  a="$(smartctl -A $d)"
+  r5=$(echo "$a" | awk '$1==5{print $10}')
+  r187=$(echo "$a" | awk '$1==187{print $10}')
+  r188=$(echo "$a" | awk '$1==188{print $10}')
+  r197=$(echo "$a" | awk '$1==197{print $10}')
+  r198=$(echo "$a" | awk '$1==198{print $10}')
+  r199=$(echo "$a" | awk '$1==199{print $10}')
+
+  status=$STATUS_OK
+
+  if [ "${r197:-0}" != "0" ] || [ "${r198:-0}" != "0" ]; then status=$ADVICE_REPLACE; fi
+  if [ "$status" = "${STATUS_OK}" ] && { [ "${r5:-0}" != "0" ] || [ "${r187:-0}" != "0" ]; }; then status=$ADVICE_REVIEW; fi
+  if [ "$status" = "${STATUS_OK}" ] && [ "${r199:-0}" != "0" ]; then status=$ADVICE_REVIEW; fi
+  echo "$d $id | 5=$r5 187=$r187 188=$r188 197=$r197 198=$r198 199=$r199 => $status" >> "$out"
+done
+cat "$out"
