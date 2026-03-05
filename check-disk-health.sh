@@ -6,7 +6,7 @@ out="/${folder}/disk_health_${ts}.txt"
 
 STATUS_OK="VALID"
 ADVICE_REPLACE="REPLACE DISK"
-ADVICE_REVIEW="CHECK INFRASTRUCTURE: sATA, BACKPLANE"
+ADVICE_REVIEW="CHECK INFRASTRUCTURE: SATA link (cable/backplane/port/power/HBA)"
 
 for d in /dev/sd{a..g}; do
   [ -b "$d" ] || continue
